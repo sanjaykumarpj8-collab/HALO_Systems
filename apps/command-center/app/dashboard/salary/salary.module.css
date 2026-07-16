@@ -1,0 +1,36 @@
+.page { display: flex; flex-direction: column; gap: var(--space-xl); }
+.headerRow { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: var(--space-md); }
+.title { font-size: var(--font-size-xl); font-weight: 700; }
+.subtitle { font-size: var(--font-size-sm); color: var(--text-tertiary); margin-top: 2px; }
+
+.summaryPills { display: flex; gap: var(--space-sm); }
+.pill { display: flex; flex-direction: column; align-items: center; padding: 10px 20px; border-radius: var(--radius-md); background: var(--bg-surface); border: 1px solid; gap: 2px; min-width: 72px; }
+.pillNum { font-size: var(--font-size-xl); font-weight: 800; }
+.pillLabel { font-size: var(--font-size-xs); color: var(--text-tertiary); }
+
+/* Skeleton */
+.loadingRows { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-md); }
+.skeleton { height: 44px; border-radius: var(--radius-md); background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-surface-hover) 50%, var(--bg-surface) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.emptyState { padding: var(--space-2xl); text-align: center; color: var(--text-tertiary); font-size: var(--font-size-sm); }
+.label { font-size: var(--font-size-sm); font-weight: 500; color: var(--text-secondary); }
+
+.payrollSummary { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.payrollLabel { font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.payrollAmount { font-size: var(--font-size-xl); font-weight: 800; color: var(--status-on-duty); }
+
+.tableCard { padding: var(--space-lg); overflow-x: auto; }
+.th { text-align: left; padding: 10px 14px; font-size: var(--font-size-xs); font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-default); }
+.tr { transition: background var(--transition-fast); }
+.tr:hover { background: var(--bg-surface-hover); }
+.td { padding: 12px 14px; font-size: var(--font-size-sm); border-bottom: 1px solid var(--border-default); }
+
+.gradeBadge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--bg-surface); border: 1px solid var(--border-default); font-weight: 700; font-size: var(--font-size-sm); }
+.bonus { color: var(--status-on-duty); font-weight: 600; }
+
+.payStatus { padding: 3px 10px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600; text-transform: capitalize; }
+.pay_paid { background: rgba(76,175,80,0.12); color: #4caf50; }
+.pay_pending { background: rgba(255,167,38,0.12); color: #ffa726; }
+.pay_overdue { background: rgba(239,83,80,0.12); color: #ef5350; }
+
+.actions { display: flex; justify-content: flex-end; }

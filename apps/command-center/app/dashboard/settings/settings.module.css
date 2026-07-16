@@ -1,0 +1,16 @@
+.page { display: flex; flex-direction: column; gap: var(--space-xl); }
+.title { font-size: var(--font-size-xl); font-weight: 700; }
+
+.grid { display: flex; flex-direction: column; gap: var(--space-sm); }
+
+.settingCard { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-lg); cursor: pointer; opacity: 0; text-align: left; width: 100%; }
+.settingCard:hover { transform: translateX(4px); }
+
+.cardIcon { font-size: 1.5rem; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: var(--bg-surface); border-radius: var(--radius-md); flex-shrink: 0; }
+
+.cardInfo { flex: 1; }
+.cardLabel { font-size: var(--font-size-base); font-weight: 600; margin-bottom: 2px; }
+.cardDesc { font-size: var(--font-size-sm); color: var(--text-tertiary); }
+
+.arrow { color: var(--text-tertiary); flex-shrink: 0; transition: transform var(--transition-fast); }
+.settingCard:hover .arrow { transform: translateX(3px); color: var(--accent-red); }

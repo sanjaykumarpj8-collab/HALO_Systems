@@ -1,0 +1,253 @@
+/* ============================================================
+   Login Page — Split Panel Layout (Wireframe 1)
+   ============================================================ */
+
+.container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* ─── Brand Panel (Left) ──────────────────────────────── */
+.brandPanel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-2xl);
+}
+
+.brandContent {
+  position: relative;
+  z-index: 2;
+  max-width: 400px;
+}
+
+.logoWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.logoIcon {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.logoText {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  background: linear-gradient(135deg, #fff 0%, #c62828 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tagline {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2xl);
+  letter-spacing: 0.03em;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.featureDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-red);
+  box-shadow: 0 0 8px var(--accent-red-glow);
+}
+
+/* Animated background rings */
+.bgRings {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ring1, .ring2, .ring3 {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(198, 40, 40, 0.08);
+}
+
+.ring1 {
+  width: 500px;
+  height: 500px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+.ring2 {
+  width: 700px;
+  height: 700px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse 5s ease-in-out infinite 0.5s;
+}
+
+.ring3 {
+  width: 900px;
+  height: 900px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse 6s ease-in-out infinite 1s;
+}
+
+/* ─── Form Panel (Right) ─────────────────────────────── */
+.formPanel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  padding: var(--space-2xl);
+  border-left: 1px solid var(--border-default);
+}
+
+.formWrapper {
+  width: 100%;
+  max-width: 400px;
+  animation: fadeIn 0.6s ease forwards;
+}
+
+.formTitle {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.formSubtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xl);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.formOptions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 16px !important;
+  height: 16px;
+  accent-color: var(--accent-red);
+}
+
+.forgotLink {
+  font-size: var(--font-size-sm);
+  color: var(--accent-red-light);
+  transition: color var(--transition-fast);
+}
+
+.forgotLink:hover {
+  color: var(--accent-red);
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 14px;
+  font-size: var(--font-size-md);
+  margin-top: var(--space-sm);
+  position: relative;
+}
+
+.submitBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.createAccount {
+  text-align: center;
+  margin-top: var(--space-xl);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.createLink {
+  color: var(--accent-red-light);
+  font-weight: 600;
+  transition: color var(--transition-fast);
+}
+
+.createLink:hover {
+  color: var(--accent-red);
+  text-decoration: underline;
+}
+
+/* ─── Responsive ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+  .brandPanel {
+    padding: var(--space-xl);
+    min-height: auto;
+  }
+  .bgRings {
+    display: none;
+  }
+}

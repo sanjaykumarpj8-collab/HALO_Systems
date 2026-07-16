@@ -1,0 +1,16 @@
+{
+  "name": "halo-stadium",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HALO — Multi-Agent Stadium Operations Platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:command": "npm run dev --workspace=apps/command-center",
+    "build:command": "npm run build --workspace=apps/command-center",
+    "dev:staff": "npm run web --workspace=ratio-staff",
+    "dev:fan": "npm run web --workspace=fifa-fan"
+  }
+}

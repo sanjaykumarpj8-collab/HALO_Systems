@@ -1,0 +1,10 @@
+{
+  "name": "@halo/ai-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "main": "pipeline.ts",
+  "types": "pipeline.ts",
+  "dependencies": {
+    "@google/genai": "^1.0.0"
+  }
+}
