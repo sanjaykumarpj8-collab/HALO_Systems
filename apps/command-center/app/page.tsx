@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./login.module.css";
-import { signInWithGoogle } from "./lib/supabase";
+import { signInWithGoogle, signInWithEmail } from "./lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,26 +19,36 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate auth — in production, this calls Supabase Auth
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    
-    // Store demo session
-    localStorage.setItem("halo_user", JSON.stringify({
-      email: formData.email,
-      role: formData.role,
-      clientId: formData.clientId,
-      name: "Operations Admin",
-    }));
 
-    if (formData.role === "staff") {
-      window.open("http://localhost:8084", "_blank");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      alert("Please enter a valid email address.");
       setIsLoading(false);
-    } else if (formData.role === "fan") {
-      window.open("http://localhost:8082", "_blank");
+      return;
+    }
+
+    if (!formData.email.toLowerCase().endsWith("@gmail.com")) {
+      alert("Please use a valid Google email address (@gmail.com).");
       setIsLoading(false);
-    } else {
-      router.push("/dashboard");
+      return;
+    }
+    
+    try {
+      await signInWithEmail(formData.email, formData.password);
+      
+      // Route based on role
+      if (formData.role === "staff") {
+        window.open("http://localhost:8084", "_blank");
+      } else if (formData.role === "fan") {
+        window.open("http://localhost:8082", "_blank");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Failed to sign in. Please check your credentials.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

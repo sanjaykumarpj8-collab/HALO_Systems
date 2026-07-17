@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "../login.module.css";
-import { signInWithGoogle } from "../lib/supabase";
+import { signInWithGoogle, signUpWithEmail } from "../lib/supabase";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -20,26 +20,30 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate auth registration — in production, this calls Supabase Auth (signUp)
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    // Store demo session
-    localStorage.setItem("halo_user", JSON.stringify({
-      email: formData.email,
-      role: formData.role,
-      clientId: formData.clientId,
-      name: formData.name || "New Operations User",
-    }));
 
-    if (formData.role === "staff") {
-      window.open("http://localhost:8084", "_blank");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      alert("Please enter a valid email address.");
       setIsLoading(false);
-    } else if (formData.role === "fan") {
-      window.open("http://localhost:8082", "_blank");
+      return;
+    }
+
+    if (!formData.email.toLowerCase().endsWith("@gmail.com")) {
+      alert("Please use a valid Google email address (@gmail.com).");
       setIsLoading(false);
-    } else {
-      router.push("/dashboard");
+      return;
+    }
+    
+    try {
+      await signUpWithEmail(formData.email, formData.password, formData.name, formData.role, formData.clientId);
+      
+      alert("Registration successful! You may now sign in.");
+      router.push("/");
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Failed to register. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
