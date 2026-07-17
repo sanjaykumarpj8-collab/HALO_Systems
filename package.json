@@ -14,5 +14,9 @@
     "dev:fan": "npm run web --workspace=fifa-fan",
     "start:cli": "npx tsx cli.ts",
     "test": "vitest run"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.1",
+    "vitest": "^4.1.10"
   }
 }
