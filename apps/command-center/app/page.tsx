@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./login.module.css";
+import { signInWithGoogle } from "./lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,6 +39,17 @@ export default function LoginPage() {
       setIsLoading(false);
     } else {
       router.push("/dashboard");
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      await signInWithGoogle();
+      // Supabase handles the redirect automatically if successful
+    } catch (err) {
+      console.error(err);
+      setIsLoading(false);
     }
   };
 
@@ -169,6 +181,17 @@ export default function LoginPage() {
               ) : (
                 "Sign In"
               )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              className={`btn ${styles.submitBtn}`}
+              disabled={isLoading}
+              style={{ marginTop: "1rem", backgroundColor: "#fff", color: "#333", border: "1px solid #ccc", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+            >
+              <img src="https://authjs.dev/img/providers/google.svg" alt="Google" width="20" height="20" />
+              Sign in with Google
             </button>
           </form>
 

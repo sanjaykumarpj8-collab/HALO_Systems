@@ -5,6 +5,23 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// ─── Authentication ──────────────────────────────────────
+export async function signInWithGoogle() {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/dashboard`
+    }
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function signOutUser() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+}
+
 // ─── Workers ────────────────────────────────────────────
 export async function getWorkers() {
   const { data, error } = await supabase

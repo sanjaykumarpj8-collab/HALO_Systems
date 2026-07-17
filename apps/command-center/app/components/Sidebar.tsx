@@ -1,8 +1,9 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import styles from "./Sidebar.module.css";
+import { signOutUser } from "../lib/supabase";
 
 function Icon({ name }: { name: string }) {
   const icons: Record<string, React.ReactNode> = {
@@ -74,6 +75,17 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+      await signOutUser();
+      localStorage.removeItem("halo_user");
+      router.push("/");
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <aside className={styles.sidebar}>
@@ -119,6 +131,21 @@ export default function Sidebar() {
           <span className={styles.navIcon}><Icon name="settings" /></span>
           <span className={styles.navLabel}>Settings</span>
         </Link>
+
+        <button 
+          onClick={handleSignOut} 
+          className={styles.navItem} 
+          style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '0.75rem 1rem', marginTop: '0.5rem', color: '#ff5252' }}
+        >
+          <span className={styles.navIcon}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </span>
+          <span className={styles.navLabel}>Sign Out</span>
+        </button>
       </div>
     </aside>
   );
