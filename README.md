@@ -1,86 +1,46 @@
-# 🏟️ HALO Stadium Operations Suite
+# HALO Stadium Operations Suite (Hackathon Submission)
 
-Welcome to the **HALO Stadium Operations Suite** – a modern, real-time crisis and incident management system tailored for high-capacity environments like FIFA World Cup stadiums. 
+## 1. Chosen Vertical
+**Stadium Operations Assistant (HALO — Crisis-Bridge Orchestrator)**. 
+Managing operations during massive live events like the FIFA World Cup requires coordinating janitorial, medical, and security staff under immense pressure. This project addresses the challenge by providing a central AI assistant that instantly parses chaotic, multilingual fan reports, determines severity and duplicate status, and dispatches the most appropriate nearby staff member with translated routing instructions. This creates a safer and more efficient environment in chaotic live-event scenarios.
 
-This ecosystem bridges the gap between fans, on-the-ground staff, and the central command center, ensuring swift responses to emergencies, spills, security concerns, and structural issues.
+## 2. Approach and Logic
+The pipeline utilizes a multi-agent orchestrated approach divided into logical, context-aware steps. We split the logic into AI-driven reasoning and deterministic rule-based checks to ensure reliability and speed:
+- **Input Sanitization (Security)**: Raw inputs are first stripped of control characters and HTML tags and hard-capped at a reasonable length to prevent Prompt Injection and XSS attacks.
+- **Agent A (Intake - AI)**: Ingests raw fan text (any language), detects the language, translates to English, and classifies the event type (e.g., medical, spill, security).
+- **Agent B (Prioritizer - AI + Rules)**: Analyzes the classified incident against recent historical incidents. It assigns a priority (1 to 5), checks for duplicate clusters in the same section, determines the necessary worker type, and escalates if multiple identical emergencies happen simultaneously. *The AI is required to output its reasoning in plain language.*
+- **Agent C (Dispatcher - AI + Rules)**: Deterministically searches a simulated pool of workers to find the closest available staff member of the required type. It then generates route instructions and a translated dispatch message in that specific worker's native language.
 
----
+## 3. How the Solution Works
+The core logic resides in `packages/ai-pipeline/pipeline.ts`. 
 
-## 🧩 Architecture
+### Setup
+1. Clone the repository and install dependencies:
+   ```bash
+   npm install
+   ```
+2. Create a `.env` file based on `.env.example` and insert your Gemini API Key:
+   ```bash
+   cp .env.example .env
+   # Edit .env to add GEMINI_API_KEY
+   ```
 
-The HALO suite is built as a robust monorepo consisting of three interconnected applications, powered by a unified real-time backend.
-
-### 1. 📱 FIFA Fan App (Mobile)
-A React Native / Expo application designed for stadium attendees.
-- **Multi-lingual Support**: Allow fans to report issues in their native languages.
-- **One-Tap Emergency**: Instantly report critical incidents with geographic and categorical tagging.
-- **Real-Time Tracking**: Provides fans with an ETA for staff arrival.
-
-### 2. 🛠️ Ratio Staff App (Mobile)
-A React Native / Expo application for on-duty janitors, security, and medics.
-- **Live Dispatch**: Instantly receives new task assignments via Supabase Realtime subscriptions.
-- **Task Management**: Workers can accept tasks, read specific instructions from Command, and mark issues as "Resolved".
-- **Profile & Status**: Live syncing of worker efficiency, duty status, and current location.
-
-### 3. 🖥️ Command Center (Web)
-A Next.js high-performance dashboard for stadium commanders and administrative staff.
-- **Global Overview**: View live statistics on active incidents, staff efficiency, and operational bottlenecks.
-- **Incident Management**: Read fan reports, view AI-assisted translations, and dispatch specific staff members to resolve issues.
-- **Analytics & Payroll**: Track staff performance and automate salary payments.
-
-### 4. 🗄️ Supabase (Backend)
-- **PostgreSQL Database**: Relational schemas connecting `users`, `incidents`, `workers`, `incident_assignments`, and `salary`.
-- **Realtime**: WebSockets pushing instant state updates to the React Native apps and the Next.js dashboard.
-- **Row Level Security (RLS)**: Enforces strict data access rules between Fans, Staff, and Admins.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v18+)
-- npm or yarn
-- Expo CLI
-- A Supabase project with the included SQL migrations applied.
-
-### 1. Environment Setup
-Create a `.env.local` file in `apps/command-center` and `.env` files in your mobile apps with your Supabase credentials:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-```
-
-### 2. Running the Command Center
+### Running the Assistant
+To run the interactive CLI assistant and test the AI pipeline end-to-end:
 ```bash
-cd apps/command-center
-npm install
-npm run dev
+npm run start:cli
 ```
-Navigate to `http://localhost:3000` to view the dashboard.
+You will be prompted to enter a raw fan incident report. The CLI will process it and output the classification, priority, AI reasoning, and final dispatch action.
 
-### 3. Running the Mobile Apps
-Open two separate terminal windows for the fan and staff apps.
+### Running Tests
+The project includes unit tests for core logic (sanitization & prioritization) and an integration test for the full pipeline. 
+We use `vitest` as a lightweight runner.
 ```bash
-# Terminal 1: Fan App
-cd apps/fifa-fan
-npm install
-npx expo start -c
-
-# Terminal 2: Staff App
-cd apps/ratio-staff
-npm install
-npx expo start -c
+npm run test
 ```
-Use the Expo Go app on your phone, or an iOS/Android simulator to view the applications.
 
----
-
-## 🛡️ Key Features
-- **Zero-Latency Dispatching**: Thanks to Supabase Realtime, when a fan reports an issue, the Command Center and Ratio Staff apps reflect the new data in milliseconds.
-- **Professional Aesthetics**: Sleek dark-mode UIs, utilizing `lucide-react` and `ionicons` for a modern, distraction-free environment.
-- **AI-Ready Architecture**: The database includes columns for AI-driven language translations and severity predictions (`english_translation`, `parsed_type`, `confidence`).
-
----
-
-*Designed for maximum operational efficiency during critical stadium events.*
+## 4. Assumptions Made
+- **Database/Data Store**: To make this submission easily runnable for evaluators without configuring PostgreSQL/Supabase, the CLI utilizes mocked data for `recentIncidents` and `availableWorkers`. In a production scenario, these would be fetched directly from the database.
+- **Worker Locations**: Worker proximity is calculated using a simplified 1D section distance heuristic (`abs(sectionA - sectionB)`). In production, this would use a real GPS/indoor positioning coordinate system.
+- **Escalation**: Escalation rules are simplified (e.g., a hardcoded severity 1 flag automatically escalates).
+- **Monorepo Structure**: The repository contains UI apps in the `/apps` directory (Command Center and Mobile Apps). These are included for context regarding the broader system architecture but the core hackathon AI logic is entirely contained and executable via the standalone Node CLI in the root and `/packages/ai-pipeline`.

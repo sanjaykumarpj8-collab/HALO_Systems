@@ -74,15 +74,12 @@ export async function runCrisisBridgePipeline(
   }
 
   // ── Stage 1: Agent A — Intake ───────────────────────────
-  console.log('[Pipeline] Stage 1: Running Intake Agent...');
   const intake = await runIntakeAgent(sanitizedText, input.geminiApiKey);
-  console.log(`[Pipeline] Intake complete: ${intake.incident_type} at ${intake.location} (${intake.detected_language})`);
 
   // Generate a temporary ID for this incident
   const tempId = crypto.randomUUID();
 
   // ── Stage 2: Agent B — Prioritizer ──────────────────────
-  console.log('[Pipeline] Stage 2: Running Prioritizer Agent...');
   const priority = await runPrioritizerAgent(
     {
       incident_id: tempId,
@@ -95,16 +92,13 @@ export async function runCrisisBridgePipeline(
     input.recentIncidents,
     input.geminiApiKey
   );
-  console.log(`[Pipeline] Priority: severity=${priority.severity}, worker_needed=${priority.required_worker_type}, escalated=${priority.escalated}`);
 
   // Skip dispatch if duplicate
   if (priority.is_duplicate) {
-    console.log(`[Pipeline] Duplicate detected, skipping dispatch. Duplicate of: ${priority.duplicate_of}`);
     return { intake, priority, dispatch: null };
   }
 
   // ── Stage 3: Agent C — Dispatcher ──────────────────────
-  console.log('[Pipeline] Stage 3: Running Dispatcher Agent...');
   const nearestWorker = findNearestWorker(
     input.availableWorkers,
     priority.required_worker_type,
@@ -112,7 +106,6 @@ export async function runCrisisBridgePipeline(
   );
 
   if (!nearestWorker) {
-    console.log(`[Pipeline] No available ${priority.required_worker_type} found!`);
     return {
       intake,
       priority,
@@ -133,8 +126,6 @@ export async function runCrisisBridgePipeline(
     nearestWorker,
     input.geminiApiKey
   );
-
-  console.log(`[Pipeline] Dispatched ${dispatch.worker_name} (${dispatch.worker_type}) — ETA: ${dispatch.eta_minutes}min`);
 
   return { intake, priority, dispatch };
 }
