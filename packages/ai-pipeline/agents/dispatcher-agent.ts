@@ -6,14 +6,14 @@
 import type { DispatchResult, Worker } from '@halo/shared';
 import { GoogleGenAI, Type } from '@google/genai';
 
-const DISPATCHER_PROMPT = `You are Agent C — the Dispatcher for HALO Stadium Operations.
-Generate actionable dispatch instructions for a worker, translated to their language.
-
-ETA rules: adjacent sections ~1min, different floors ~2-3min, different gates ~3-5min.
-Message format: 🚨 [EMOJI] [TYPE] — [LOCATION] [DESCRIPTION] Route: [ROUTE] ETA: [X]min
-Severity emojis: 1=🔴, 2=🟠, 3=🟡, 4=🟢, 5=⚪`;
+const DISPATCHER_PROMPT = `You are Agent C — the Dispatcher.
+Generate dispatch instructions translated to worker's language.
+ETA: adjacent ~1m, diff floors ~3m, diff gates ~5m.
+Format: 🚨 [EMOJI] [TYPE] — [LOCATION] [DESC] Route: [ROUTE] ETA: [X]min
+Emojis: 1=🔴, 2=🟠, 3=🟡, 4=🟢, 5=⚪`;
 
 let aiInstance: GoogleGenAI | null = null;
+const dispatchCache = new Map<string, DispatchResult>();
 
 export async function runDispatcherAgent(
   incident: {
@@ -27,6 +27,17 @@ export async function runDispatcherAgent(
   worker: Worker,
   geminiApiKey: string
 ): Promise<DispatchResult> {
+  const cacheKey = `${worker.language}-${incident.incident_type}-${incident.severity}-${worker.section}-${incident.section_id}-${incident.location}`;
+  if (dispatchCache.has(cacheKey)) {
+    const cached = dispatchCache.get(cacheKey)!;
+    return {
+      ...cached,
+      incident_id: incident.incident_id,
+      assigned_worker_id: worker.id,
+      worker_name: worker.name
+    };
+  }
+
   if (!aiInstance) {
     aiInstance = new GoogleGenAI({ apiKey: geminiApiKey });
   }
@@ -80,7 +91,13 @@ export async function runDispatcherAgent(
   const text = response.text ?? '';
 
   try {
-    return JSON.parse(text) as DispatchResult;
+    const result = JSON.parse(text) as DispatchResult;
+    dispatchCache.set(cacheKey, result);
+    if (dispatchCache.size > 200) {
+      const first = dispatchCache.keys().next().value;
+      if (first) dispatchCache.delete(first);
+    }
+    return result;
   } catch {
     // Fallback with basic distance estimation
     const sectionDiff = Math.abs(

@@ -7,25 +7,29 @@
 import type { IntakeResult } from '@halo/shared';
 import { GoogleGenAI, Type } from '@google/genai';
 
-const INTAKE_PROMPT = `You are Agent A — the Intake Parser for the HALO Stadium Operations system.
-
-Your job is to parse chaotic, multilingual incident reports from stadium fans and extract structured information.
-
-Classification: medical/hurt/injured→medical, fight/violence/weapon/stuck→security, spill/wet/dirty→spill, fire/smoke→fire, blocked/broken→structural, loud/overwhelming→noise, wheelchair/ramp→accessibility.
+const INTAKE_PROMPT = `You are Agent A — the Intake Parser.
+Parse fan incident reports into structured data.
+Classify: medical/hurt→medical, fight/weapon→security, spill/wet→spill, fire/smoke→fire, blocked→structural, loud→noise, wheelchair→accessibility.
 Urgency: life-threatening→critical, safety risk→high, operational→medium, comfort→low.`;
 
 let aiInstance: GoogleGenAI | null = null;
+const intakeCache = new Map<string, IntakeResult>();
 
 export async function runIntakeAgent(
   rawText: string,
   geminiApiKey: string
 ): Promise<IntakeResult> {
+  const cacheKey = rawText.toLowerCase().trim();
+  if (intakeCache.has(cacheKey)) {
+    return intakeCache.get(cacheKey)!;
+  }
+
   if (!aiInstance) {
     aiInstance = new GoogleGenAI({ apiKey: geminiApiKey });
   }
 
   const response = await aiInstance.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-1.5-flash-8b',
     contents: [
       {
         role: 'user',
@@ -61,6 +65,13 @@ export async function runIntakeAgent(
   const text = response.text ?? '';
   try {
     const result: IntakeResult = JSON.parse(text);
+    
+    intakeCache.set(cacheKey, result);
+    if (intakeCache.size > 100) {
+      const firstKey = intakeCache.keys().next().value;
+      if (firstKey) intakeCache.delete(firstKey);
+    }
+    
     return result;
   } catch (e) {
     // Fallback for parse failures

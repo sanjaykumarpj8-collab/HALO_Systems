@@ -76,8 +76,31 @@ export async function runCrisisBridgePipeline(
   // ── Stage 1: Agent A — Intake ───────────────────────────
   const intake = await runIntakeAgent(sanitizedText, input.geminiApiKey);
 
-  // Generate a temporary ID for this incident
+  // ── Deterministic Duplicate Detection ───────────────────
   const tempId = crypto.randomUUID();
+  const now = Date.now();
+  const duplicate = input.recentIncidents.find(i => {
+    if (i.parsed_type !== intake.incident_type || i.section_id !== intake.section_id) return false;
+    const timeDiff = now - new Date(i.created_at).getTime();
+    return Number.isNaN(timeDiff) || timeDiff <= 10 * 60000;
+  });
+
+  if (duplicate) {
+    const typeToWorker: Record<string, "janitor" | "medic" | "security"> = {
+      medical: 'medic', fire: 'security', security: 'security', structural: 'security',
+      spill: 'janitor', noise: 'janitor', accessibility: 'janitor', other: 'security'
+    };
+    const priority: PrioritizedIncident = {
+      incident_id: tempId,
+      severity: duplicate.severity ?? 3,
+      is_duplicate: true,
+      duplicate_of: duplicate.id,
+      escalated: false,
+      required_worker_type: typeToWorker[intake.incident_type] ?? 'security',
+      reasoning: 'Deterministic duplicate detection (same type + section within 10m)'
+    };
+    return { intake, priority, dispatch: null };
+  }
 
   // ── Stage 2: Agent B — Prioritizer ──────────────────────
   const priority = await runPrioritizerAgent(

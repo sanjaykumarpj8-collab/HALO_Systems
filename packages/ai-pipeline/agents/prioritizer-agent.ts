@@ -6,12 +6,11 @@
 import type { PrioritizedIncident, Incident, IncidentSeverity, WorkerType } from '@halo/shared';
 import { GoogleGenAI, Type } from '@google/genai';
 
-const PRIORITIZER_PROMPT = `You are Agent B — the Prioritizer for HALO Stadium Operations.
+const PRIORITIZER_PROMPT = `You are Agent B — the Prioritizer.
 Assign severity (1=critical to 5=trivial), detect duplicates, determine worker type needed.
-
-Severity: 1=life-threatening, 2=safety risk, 3=operational, 4=minor, 5=informational.
+Severity: 1=life-threatening, 2=safety risk, 3=operational, 4=minor, 5=info.
 Worker mapping: spill→janitor, medical→medic, security/fire/structural→security.
-Escalate if: 3+ incidents same section in 10min, any severity 1, or crowd panic.
+Escalate if: 3+ incidents same section in 10min, severity 1, or panic.
 Duplicate if: same type + same section within 10min.`;
 
 let aiInstance: GoogleGenAI | null = null;
@@ -32,13 +31,19 @@ export async function runPrioritizerAgent(
     aiInstance = new GoogleGenAI({ apiKey: geminiApiKey });
   }
 
+  // Pre-filter recent incidents to same section and within 30 minutes to save tokens
+  const now = Date.now();
+  const relevantIncidents = recentIncidents.filter(i => {
+    if (incident.section_id !== null && i.section_id !== incident.section_id) return false;
+    const timeDiff = now - new Date(i.created_at).getTime();
+    return Number.isNaN(timeDiff) || timeDiff <= 30 * 60000;
+  });
+
   const context = {
     ...incident,
-    recent_incidents: recentIncidents.map((i) => ({
+    recent_incidents: relevantIncidents.map((i) => ({
       id: i.id,
       type: i.parsed_type,
-      section_id: i.section_id,
-      status: i.status,
       created_at: i.created_at,
     })),
   };

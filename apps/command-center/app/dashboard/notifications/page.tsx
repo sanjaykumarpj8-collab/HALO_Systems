@@ -13,13 +13,30 @@ const TYPE_ICON: Record<string, React.ElementType> = {
   fire: Flame, structural: Building, noise: Volume2, accessibility: Accessibility, other: Pin,
 };
 
+function TimeAgo({ ts }: { ts: string }) {
+  const [str, setStr] = useState("");
+  
+  useEffect(() => {
+    const update = () => {
+      const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+      if (diff < 60) setStr(`${Math.round(diff)}s ago`);
+      else if (diff < 3600) setStr(`${Math.round(diff / 60)}m ago`);
+      else setStr(`${Math.round(diff / 3600)}h ago`);
+    };
+    update();
+    const timer = setInterval(update, 60000);
+    return () => clearInterval(timer);
+  }, [ts]);
+
+  return <>{str}</>;
+}
+
 export default function NotificationsPage() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "new" | "assigned" | "in-progress" | "resolved">("all");
-  const [now, setNow] = useState<number | null>(null);
   const [workers, setWorkers] = useState<Worker[]>([]);
   
   // Dispatch form state
@@ -47,26 +64,14 @@ export default function NotificationsPage() {
     // Subscribe to realtime updates
     const channel = subscribeToIncidents(() => loadIncidents());
     
-    setNow(Date.now());
-    const timer = setInterval(() => setNow(Date.now()), 60000);
-    
     return () => { 
       channel.unsubscribe(); 
-      clearInterval(timer);
     };
   }, [loadIncidents]);
 
   const filtered = incidents.filter((i) => filter === "all" || i.status === filter);
   const selected = incidents.find((i) => i.id === selectedId);
   const newCount = incidents.filter((i) => i.status === "new").length;
-
-  const formatTime = (ts: string) => {
-    if (!now) return "";
-    const diff = (now - new Date(ts).getTime()) / 1000;
-    if (diff < 60) return `${Math.round(diff)}s ago`;
-    if (diff < 3600) return `${Math.round(diff / 60)}m ago`;
-    return `${Math.round(diff / 3600)}h ago`;
-  };
 
   return (
     <div className={styles.page}>
@@ -110,7 +115,7 @@ export default function NotificationsPage() {
                   })()}
                 </span>
                 <span className={styles.msgSender}>{inc.reporter_name}</span>
-                <span className={styles.msgTime}>{formatTime(inc.created_at)}</span>
+                <span className={styles.msgTime}><TimeAgo ts={inc.created_at} /></span>
               </div>
               <p className={styles.msgPreview}>{inc.raw_text}</p>
               <div className={styles.msgMeta}>
@@ -146,7 +151,7 @@ export default function NotificationsPage() {
                 </span>
                 <div className={styles.detailMeta}>
                   <h3 className={styles.detailSender}>{selected.reporter_name}</h3>
-                  <span className={styles.detailTime}>{formatTime(selected.created_at)}</span>
+                  <span className={styles.detailTime}><TimeAgo ts={selected.created_at} /></span>
                 </div>
                 <div className={styles.detailBadges}>
                   <span className={`badge badge-${selected.status}`}>{selected.status}</span>
