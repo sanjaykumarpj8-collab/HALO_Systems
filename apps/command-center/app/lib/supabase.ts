@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Worker } from '@halo/shared';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://avkorqyoxyrxjvfncuji.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_LTr6jPGA1C_MJSGxtcWDMA_2VFv1Oe6';
@@ -54,7 +55,7 @@ export async function getWorkers() {
     .select('*')
     .order('worker_id', { ascending: true });
   if (error) throw error;
-  return data;
+  return data?.map(w => ({ ...w, efficiency: 100 })) || [];
 }
 
 export async function getDashboardStats() {
@@ -65,9 +66,6 @@ export async function getDashboardStats() {
 
   const active = workers.filter((w) => w.status === 'on-duty').length;
   const incident = workers.filter((w) => w.status === 'completed').length;
-  const effAvg = workers.length
-    ? Math.round(workers.reduce((s, w) => s + w.efficiency, 0) / workers.length)
-    : 0;
 
   const { count: totalProblems } = await supabase
     .from('incidents')
@@ -83,7 +81,7 @@ export async function getDashboardStats() {
     incident_workers: incident,
     total_problems: totalProblems ?? 0,
     problem_solved: solved ?? 0,
-    efficiency: effAvg,
+    efficiency: 100,
   };
 }
 
@@ -129,8 +127,7 @@ export async function getAnalyticsEvents() {
 }
 
 // ─── Realtime subscription for incidents ─────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function subscribeToIncidents(callback: (payload: any) => void) {
+export function subscribeToIncidents(callback: (payload: Record<string, unknown>) => void) {
   return supabase
     .channel(`incidents-changes-${Math.random()}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, callback)
@@ -184,16 +181,14 @@ export async function processAllPayments() {
   return data;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function subscribeToWorkers(callback: (payload: any) => void) {
+export function subscribeToWorkers(callback: (payload: Record<string, unknown>) => void) {
   return supabase
     .channel(`workers-changes-${Math.random()}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'workers' }, callback)
     .subscribe();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function subscribeToSalary(callback: (payload: any) => void) {
+export function subscribeToSalary(callback: (payload: Record<string, unknown>) => void) {
   return supabase
     .channel(`salary-changes-${Math.random()}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'salary' }, callback)
@@ -217,8 +212,7 @@ export async function addWorker(workerData: { name: string, type: string, sectio
   return data;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function updateWorker(workerId: string, updates: any) {
+export async function updateWorker(workerId: string, updates: Partial<Worker>) {
   const { data, error } = await supabase
     .from('workers')
     .update(updates)

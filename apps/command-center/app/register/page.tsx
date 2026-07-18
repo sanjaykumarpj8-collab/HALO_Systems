@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import styles from "../login.module.css";
 import { signInWithGoogle, signUpWithEmail } from "../lib/supabase";
 
@@ -39,9 +40,9 @@ export default function RegisterPage() {
       
       alert("Registration successful! You may now sign in.");
       router.push("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert(err.message || "Failed to register. Please try again.");
+      alert(err instanceof Error ? err.message : "Failed to register. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -191,7 +192,7 @@ export default function RegisterPage() {
               disabled={isLoading}
               style={{ marginTop: "1rem", backgroundColor: "#fff", color: "#333", border: "1px solid #ccc", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
             >
-              <img src="https://authjs.dev/img/providers/google.svg" alt="Google" width="20" height="20" />
+              <Image src="https://authjs.dev/img/providers/google.svg" alt="Google" width={20} height={20} />
               Sign up with Google
             </button>
           </form>

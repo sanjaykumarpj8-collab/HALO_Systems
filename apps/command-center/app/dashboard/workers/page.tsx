@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import styles from "./workers.module.css";
 import { getWorkers, subscribeToWorkers } from "../../lib/supabase";
+import type { Worker } from "@halo/shared";
 
 export default function WorkersPage() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [allWorkers, setAllWorkers] = useState<any[]>([]);
+  const [allWorkers, setAllWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");

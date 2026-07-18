@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./login.module.css";
@@ -44,9 +45,9 @@ export default function LoginPage() {
       } else {
         router.push("/dashboard");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert(err.message || "Failed to sign in. Please check your credentials.");
+      alert(err instanceof Error ? err.message : "Failed to sign in. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }
@@ -200,7 +201,7 @@ export default function LoginPage() {
               disabled={isLoading}
               style={{ marginTop: "1rem", backgroundColor: "#fff", color: "#333", border: "1px solid #ccc", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
             >
-              <img src="https://authjs.dev/img/providers/google.svg" alt="Google" width="20" height="20" />
+              <Image src="https://authjs.dev/img/providers/google.svg" alt="Google" width={20} height={20} />
               Sign in with Google
             </button>
           </form>

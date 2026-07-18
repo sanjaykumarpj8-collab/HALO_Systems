@@ -28,6 +28,17 @@ vi.mock('@google/genai', () => {
               urgency_hint: "medium",
               confidence: 0.9
             })};
+
+          } else if (prompt.includes('duplicate-trigger')) {
+            return { text: JSON.stringify({
+              incident_id: "temp-id",
+              severity: 4,
+              is_duplicate: true,
+              duplicate_of: "old-id",
+              escalated: false,
+              required_worker_type: "security",
+              reasoning: "Duplicate."
+            })};
           } else if (prompt.includes('Agent B')) {
             return { text: JSON.stringify({
               incident_id: "temp-id",
@@ -84,5 +95,47 @@ describe('Pipeline Integration', () => {
     // Dispatch Assertions
     expect(result.dispatch).toBeDefined();
     expect(result.dispatch?.assigned_worker_id).toBe('w-1');
+  });
+
+  it('returns early if input is empty after sanitization', async () => {
+    const result = await runCrisisBridgePipeline({
+      rawText: '   ',
+      reporterId: 'fan-1',
+      reporterName: 'Alice',
+      geminiApiKey: 'fake-key',
+      recentIncidents: [],
+      availableWorkers: []
+    });
+    expect(result.error).toBe("Input text is empty or invalid after sanitization.");
+    expect(result.dispatch).toBeNull();
+  });
+
+  it('skips dispatch if incident is a duplicate', async () => {
+    const result = await runCrisisBridgePipeline({
+      rawText: 'Spill',
+      reporterId: 'fan-1',
+      reporterName: 'Alice',
+      geminiApiKey: 'fake-key',
+      recentIncidents: [
+        { id: 'duplicate-trigger', parsed_type: 'spill', section_id: 105, status: 'new', created_at: '', reported_by: '', reporter_name: '', raw_text: '', detected_language: '', english_translation: '', severity: 3, location_description: '', confidence: 1 }
+      ],
+      availableWorkers: []
+    });
+    expect(result.priority.is_duplicate).toBe(true);
+    expect(result.dispatch).toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('returns an error if no worker is available', async () => {
+    const result = await runCrisisBridgePipeline({
+      rawText: 'There is a spill in 105',
+      reporterId: 'fan-1',
+      reporterName: 'Alice',
+      geminiApiKey: 'fake-key',
+      recentIncidents: [],
+      availableWorkers: [] // No workers!
+    });
+    expect(result.dispatch).toBeNull();
+    expect(result.error).toContain("No available janitor workers found");
   });
 });

@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import styles from "./salary.module.css";
 import { getSalary, processAllPayments, subscribeToSalary } from "../../lib/supabase";
+import type { Salary } from "@halo/shared";
 
 export default function SalaryPage() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [salaryData, setSalaryData] = useState<any[]>([]);
+  const [salaryData, setSalaryData] = useState<Salary[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [gradeFilter, setGradeFilter] = useState("all");

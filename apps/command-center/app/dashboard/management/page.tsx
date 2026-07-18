@@ -3,6 +3,7 @@
 import { useState } from "react";
 import styles from "./management.module.css";
 import { addWorker, updateWorker, removeWorker } from "../../lib/supabase";
+import type { Worker } from "@halo/shared";
 
 type Tab = "add" | "edit" | "remove";
 
@@ -30,8 +31,7 @@ export default function ManagementPage() {
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const updates: any = {};
+      const updates: Partial<Worker> = {};
       if (editForm.name) updates.name = editForm.name;
       if (editForm.type) updates.type = editForm.type;
       if (editForm.section) updates.section = parseInt(editForm.section);

@@ -61,7 +61,8 @@ export default function DashboardPage() {
   const total = STATUS_DATA.reduce((s, d) => s + d.count, 0) || 1;
 
   return (
-    <div className={styles.page}>
+    <main className={styles.page}>
+      <h1 style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>Dashboard Overview</h1>
       {/* ─── Filters ───────────────────────────────────── */}
       <div className={styles.filtersRow}>
         <span className={styles.filtersLabel}>Filters:</span>
@@ -103,10 +104,10 @@ export default function DashboardPage() {
       <div className={styles.mainGrid}>
         {/* Recent Workers Table */}
         <div className={`glass-card ${styles.tableCard}`}>
-          <h3 className={styles.cardTitle}>
+          <h2 className={styles.cardTitle}>
             Recent Workers
             <span className={styles.rowCount}>{filteredWorkers.length} workers</span>
-          </h3>
+          </h2>
           {loading ? (
             <div className={styles.loadingRows}>
               {[...Array(5)].map((_, i) => <div key={i} className={styles.skeleton} />)}
@@ -116,12 +117,12 @@ export default function DashboardPage() {
               <table>
                 <thead>
                   <tr>
-                    <th className={styles.th}>ID</th>
-                    <th className={styles.th}>Name</th>
-                    <th className={styles.th}>Status</th>
-                    <th className={styles.th}>Type</th>
-                    <th className={styles.th}>Section</th>
-                    <th className={styles.th}>Efficiency</th>
+                    <th scope="col" className={styles.th}>ID</th>
+                    <th scope="col" className={styles.th}>Name</th>
+                    <th scope="col" className={styles.th}>Status</th>
+                    <th scope="col" className={styles.th}>Type</th>
+                    <th scope="col" className={styles.th}>Section</th>
+                    <th scope="col" className={styles.th}>Efficiency</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -148,7 +149,7 @@ export default function DashboardPage() {
 
         {/* Workers Status Chart */}
         <div className={`glass-card ${styles.chartCard}`}>
-          <h3 className={styles.cardTitle}>Workers Status</h3>
+          <h2 className={styles.cardTitle}>Workers Status</h2>
           <div className={styles.stackedBar}>
             {STATUS_DATA.map((s) => (
               <div key={s.label} className={styles.stackedSegment} style={{ width: `${(s.count / total) * 100}%`, background: s.color }} title={`${s.label}: ${s.count}`} />
@@ -188,6 +189,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
