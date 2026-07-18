@@ -4,25 +4,16 @@
  */
 
 import type { DispatchResult, Worker } from '@halo/shared';
+import { GoogleGenAI, Type } from '@google/genai';
 
 const DISPATCHER_PROMPT = `You are Agent C — the Dispatcher for HALO Stadium Operations.
 Generate actionable dispatch instructions for a worker, translated to their language.
 
-Return ONLY valid JSON:
-{
-  "incident_id": "same as input",
-  "assigned_worker_id": "worker id",
-  "worker_name": "name",
-  "worker_type": "type",
-  "eta_minutes": integer,
-  "route_instructions": "step-by-step directions using stadium landmarks",
-  "translated_message": "full dispatch message in worker's language",
-  "target_language": "language code"
-}
-
 ETA rules: adjacent sections ~1min, different floors ~2-3min, different gates ~3-5min.
 Message format: 🚨 [EMOJI] [TYPE] — [LOCATION] [DESCRIPTION] Route: [ROUTE] ETA: [X]min
 Severity emojis: 1=🔴, 2=🟠, 3=🟡, 4=🟢, 5=⚪`;
+
+let aiInstance: GoogleGenAI | null = null;
 
 export async function runDispatcherAgent(
   incident: {
@@ -36,8 +27,9 @@ export async function runDispatcherAgent(
   worker: Worker,
   geminiApiKey: string
 ): Promise<DispatchResult> {
-  const { GoogleGenAI } = await import('@google/genai');
-  const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+  if (!aiInstance) {
+    aiInstance = new GoogleGenAI({ apiKey: geminiApiKey });
+  }
 
   const context = {
     ...incident,
@@ -50,7 +42,7 @@ export async function runDispatcherAgent(
     },
   };
 
-  const response = await ai.models.generateContent({
+  const response = await aiInstance.models.generateContent({
     model: 'gemini-2.5-flash',
     contents: [
       {
@@ -65,14 +57,30 @@ export async function runDispatcherAgent(
     config: {
       temperature: 0.3,
       responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          incident_id: { type: Type.STRING },
+          assigned_worker_id: { type: Type.STRING },
+          worker_name: { type: Type.STRING },
+          worker_type: { 
+            type: Type.STRING,
+            enum: ['janitor', 'medic', 'security']
+          },
+          eta_minutes: { type: Type.INTEGER },
+          route_instructions: { type: Type.STRING },
+          translated_message: { type: Type.STRING },
+          target_language: { type: Type.STRING }
+        },
+        required: ["incident_id", "assigned_worker_id", "worker_name", "worker_type", "eta_minutes", "route_instructions", "translated_message", "target_language"]
+      }
     },
   });
 
   const text = response.text ?? '';
-  const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
   try {
-    return JSON.parse(cleaned) as DispatchResult;
+    return JSON.parse(text) as DispatchResult;
   } catch {
     // Fallback with basic distance estimation
     const sectionDiff = Math.abs(
@@ -104,7 +112,7 @@ export function findNearestWorker(
   incidentSection: number | null
 ): Worker | null {
   const available = workers.filter(
-    (w) => w.type === requiredType && (w.status === 'on-duty' || w.status === 'off-duty')
+    (w) => w.type === requiredType && w.status === 'on-duty'
   );
 
   if (available.length === 0) return null;

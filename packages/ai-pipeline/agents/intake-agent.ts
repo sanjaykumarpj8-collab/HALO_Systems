@@ -5,35 +5,26 @@
  */
 
 import type { IntakeResult } from '@halo/shared';
+import { GoogleGenAI, Type } from '@google/genai';
 
 const INTAKE_PROMPT = `You are Agent A — the Intake Parser for the HALO Stadium Operations system.
 
 Your job is to parse chaotic, multilingual incident reports from stadium fans and extract structured information.
 
-Return ONLY valid JSON with this exact schema:
-{
-  "original_text": "the exact input text",
-  "detected_language": "ISO 639-1 code",
-  "english_translation": "accurate English translation",
-  "incident_type": "spill | medical | security | fire | structural | noise | accessibility | other",
-  "location": "extracted location",
-  "section_id": null or integer,
-  "urgency_hint": "critical | high | medium | low",
-  "confidence": 0.0 to 1.0
-}
-
 Classification: medical/hurt/injured→medical, fight/violence/weapon/stuck→security, spill/wet/dirty→spill, fire/smoke→fire, blocked/broken→structural, loud/overwhelming→noise, wheelchair/ramp→accessibility.
-Urgency: life-threatening→critical, safety risk→high, operational→medium, comfort→low.
-Return ONLY the JSON, no markdown.`;
+Urgency: life-threatening→critical, safety risk→high, operational→medium, comfort→low.`;
+
+let aiInstance: GoogleGenAI | null = null;
 
 export async function runIntakeAgent(
   rawText: string,
   geminiApiKey: string
 ): Promise<IntakeResult> {
-  const { GoogleGenAI } = await import('@google/genai');
-  const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+  if (!aiInstance) {
+    aiInstance = new GoogleGenAI({ apiKey: geminiApiKey });
+  }
 
-  const response = await ai.models.generateContent({
+  const response = await aiInstance.models.generateContent({
     model: 'gemini-2.5-flash',
     contents: [
       {
@@ -44,14 +35,32 @@ export async function runIntakeAgent(
     config: {
       temperature: 0.1,
       responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          original_text: { type: Type.STRING },
+          detected_language: { type: Type.STRING, description: "ISO 639-1 code" },
+          english_translation: { type: Type.STRING },
+          incident_type: { 
+            type: Type.STRING,
+            enum: ['spill', 'medical', 'security', 'fire', 'structural', 'noise', 'accessibility', 'other']
+          },
+          location: { type: Type.STRING },
+          section_id: { type: Type.INTEGER, nullable: true },
+          urgency_hint: { 
+            type: Type.STRING,
+            enum: ['critical', 'high', 'medium', 'low']
+          },
+          confidence: { type: Type.NUMBER }
+        },
+        required: ["original_text", "detected_language", "english_translation", "incident_type", "location", "urgency_hint", "confidence"]
+      }
     },
   });
 
   const text = response.text ?? '';
-  const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  
   try {
-    const result: IntakeResult = JSON.parse(cleaned);
+    const result: IntakeResult = JSON.parse(text);
     return result;
   } catch (e) {
     // Fallback for parse failures

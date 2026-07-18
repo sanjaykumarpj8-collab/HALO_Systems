@@ -5,6 +5,13 @@ import type { Worker } from '@halo/shared';
 // We mock the inner AI calls to simulate an end-to-end flow without hitting real APIs
 vi.mock('@google/genai', () => {
   return {
+    Type: {
+      OBJECT: 'OBJECT',
+      STRING: 'STRING',
+      INTEGER: 'INTEGER',
+      BOOLEAN: 'BOOLEAN',
+      NUMBER: 'NUMBER'
+    },
     GoogleGenAI: class {
       models = {
         generateContent: vi.fn().mockImplementation(async (opts: any) => {
@@ -51,9 +58,9 @@ vi.mock('@google/genai', () => {
 
 describe('Pipeline Integration', () => {
   it('runs an incident through the full triage and dispatch pipeline', async () => {
-    const mockWorkers: Worker[] = [
+    const mockWorkers = [
       { id: 'w-1', name: 'John', type: 'janitor', section: 101, status: 'on-duty', language: 'en' }
-    ];
+    ] as any;
 
     const result = await runCrisisBridgePipeline({
       rawText: 'There is a spill in 105',

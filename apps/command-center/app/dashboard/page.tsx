@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import styles from "./dashboard.module.css";
 import { getDashboardStats, getWorkers } from "../lib/supabase";
+import type { Worker, DashboardStats } from "@halo/shared";
 
 const STAT_CARDS = [
   { key: "active_workers",   label: "Active Workers",   color: "#4caf50" },
@@ -16,9 +17,8 @@ type FilterType = "all" | "janitor" | "medic" | "security";
 type FilterStatus = "all" | "on-duty" | "completed" | "off-duty" | "retired";
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState({ active_workers: 0, incident_workers: 0, total_problems: 0, problem_solved: 0, efficiency: 0 });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [workers, setWorkers] = useState<any[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({ active_workers: 0, incident_workers: 0, total_problems: 0, problem_solved: 0, efficiency: 0 });
+  const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
@@ -30,9 +30,8 @@ export default function DashboardPage() {
     async function loadData() {
       try {
         const [s, w] = await Promise.all([getDashboardStats(), getWorkers()]);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setStats(s as any);
-        setWorkers(w ?? []);
+        setStats(s as DashboardStats);
+        setWorkers((w ?? []) as Worker[]);
       } catch (e) {
         console.error("Supabase load error:", e);
       } finally {
@@ -66,13 +65,13 @@ export default function DashboardPage() {
       {/* ─── Filters ───────────────────────────────────── */}
       <div className={styles.filtersRow}>
         <span className={styles.filtersLabel}>Filters:</span>
-        <select value={filterType} onChange={(e) => setFilterType(e.target.value as FilterType)} className={styles.filterSelect} id="filter-worker-type">
+        <select aria-label="Filter by Worker Type" value={filterType} onChange={(e) => setFilterType(e.target.value as FilterType)} className={styles.filterSelect} id="filter-worker-type">
           <option value="all">Worker&apos;s Type ▾</option>
           <option value="janitor">Janitor</option>
           <option value="medic">Medic</option>
           <option value="security">Security</option>
         </select>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as FilterStatus)} className={styles.filterSelect} id="filter-status">
+        <select aria-label="Filter by Worker Status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as FilterStatus)} className={styles.filterSelect} id="filter-status">
           <option value="all">Status: All ▾</option>
           <option value="on-duty">On-Duty</option>
           <option value="completed">Completed</option>
@@ -92,7 +91,7 @@ export default function DashboardPage() {
             <div className={styles.statInfo}>
               <span className={styles.statLabel}>{card.label}</span>
               <span className={styles.statValue}>
-                {loading ? "—" : (stats as Record<string, number>)[card.key]}
+                {loading ? "—" : stats[card.key as keyof DashboardStats]}
                 {!loading && (card.suffix ?? "")}
               </span>
             </div>
@@ -165,7 +164,7 @@ export default function DashboardPage() {
             ))}
           </div>
           <div className={styles.donutWrapper}>
-            <svg viewBox="0 0 120 120" className={styles.donut}>
+            <svg viewBox="0 0 120 120" className={styles.donut} aria-label="Workers Status Chart" role="img">
               {STATUS_DATA.reduce<{ elements: React.ReactElement[]; offset: number }>(
                 (acc, s, i) => {
                   const pct = (s.count / total) * 100;
