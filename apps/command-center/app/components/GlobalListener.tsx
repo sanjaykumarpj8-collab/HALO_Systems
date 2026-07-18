@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import toast from "react-hot-toast";
 import { subscribeToIncidents } from "../lib/supabase";
 import { Stethoscope, ShieldAlert, Droplet, Flame, Building, Volume2, Accessibility, Pin } from "lucide-react";
+import type { Incident } from "@halo/shared";
 
 const TYPE_ICON: Record<string, React.ElementType> = {
   medical: Stethoscope, security: ShieldAlert, spill: Droplet,
@@ -14,7 +15,7 @@ export default function GlobalListener() {
   useEffect(() => {
     const channel = subscribeToIncidents((payload) => {
       if (payload.eventType === 'INSERT') {
-        const incident = payload.new;
+        const incident = payload.new as Incident;
         
         // Show notification for ALL incidents
         if (incident) {
