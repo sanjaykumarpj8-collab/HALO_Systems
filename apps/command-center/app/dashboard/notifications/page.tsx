@@ -179,10 +179,10 @@ export default function NotificationsPage() {
               </div>
 
               {/* AI Reasoning if available */}
-              {selected.ai_reasoning && (
+              {(selected as any).ai_reasoning && (
                 <div className={styles.detailSection}>
                   <label className={styles.detailLabel}>AI Analysis</label>
-                  <div className={styles.aiBox}>{selected.ai_reasoning}</div>
+                  <div className={styles.aiBox}>{(selected as any).ai_reasoning}</div>
                 </div>
               )}
 

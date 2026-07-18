@@ -33,7 +33,7 @@ export default function SalaryPage() {
     return true;
   });
 
-  const totalPayroll = filtered.reduce((sum, s) => sum + parseFloat(s.total ?? 0), 0);
+  const totalPayroll = filtered.reduce((sum, s) => sum + Number(s.total ?? 0), 0);
   const paidCount = filtered.filter((s) => s.payment_status === "paid").length;
   const pendingCount = filtered.filter((s) => s.payment_status === "pending").length;
   const overdueCount = filtered.filter((s) => s.payment_status === "overdue").length;
@@ -127,9 +127,9 @@ export default function SalaryPage() {
                   <td className={styles.td}><span className={styles.gradeBadge}>{s.grade}</span></td>
                   <td className={styles.td} style={{ textTransform: "capitalize" }}>{s.type}</td>
                   <td className={styles.td}>{s.section}</td>
-                  <td className={styles.td}>${parseFloat(s.base_pay).toLocaleString()}</td>
-                  <td className={styles.td}><span className={styles.bonus}>+${parseFloat(s.bonus).toLocaleString()}</span></td>
-                  <td className={styles.td}><strong>${parseFloat(s.total).toLocaleString()}</strong></td>
+                  <td className={styles.td}>${Number(s.base_pay).toLocaleString()}</td>
+                  <td className={styles.td}><span className={styles.bonus}>+${Number(s.bonus).toLocaleString()}</span></td>
+                  <td className={styles.td}><strong>${Number(s.total).toLocaleString()}</strong></td>
                   <td className={styles.td}>
                     <span className={`${styles.payStatus} ${styles[`pay_${s.payment_status}`]}`}>{s.payment_status}</span>
                   </td>

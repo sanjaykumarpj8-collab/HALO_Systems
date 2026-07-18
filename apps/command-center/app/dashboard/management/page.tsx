@@ -3,7 +3,7 @@
 import { useState } from "react";
 import styles from "./management.module.css";
 import { addWorker, updateWorker, removeWorker } from "../../lib/supabase";
-import type { Worker } from "@halo/shared";
+import type { Worker, WorkerType, WorkerStatus } from "@halo/shared";
 
 type Tab = "add" | "edit" | "remove";
 
@@ -33,9 +33,9 @@ export default function ManagementPage() {
     try {
       const updates: Partial<Worker> = {};
       if (editForm.name) updates.name = editForm.name;
-      if (editForm.type) updates.type = editForm.type;
+      if (editForm.type) updates.type = editForm.type as WorkerType;
       if (editForm.section) updates.section = parseInt(editForm.section);
-      if (editForm.status) updates.status = editForm.status;
+      if (editForm.status) updates.status = editForm.status as WorkerStatus;
       
       await updateWorker(editForm.workerId, updates);
       setFeedback(`Worker ${editForm.workerId} updated successfully`);
